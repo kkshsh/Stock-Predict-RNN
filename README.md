@@ -1,5 +1,4 @@
 # Stock-Predict-RNN
-predict stock price use neraul network
 看代码中**v4**版本即可
 ## 测试关注的重点
 1. 输入：尝试过各种各样的输入，除了基本的close price, open price, lowest price, highest price, 还有每天的成交量，成交金额，各种股票因子（均线等）,
