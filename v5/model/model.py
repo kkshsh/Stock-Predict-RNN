@@ -14,6 +14,8 @@ class LstmModel:
         self.session = session
         self.right = 0
         self.samples = 0
+        self.right_list = np.zeros([5])
+        self.samples_list = np.zeros([5])
 
     def build_graph(self):
         """placeholder: train data"""
@@ -76,12 +78,13 @@ class LstmModel:
         threads = tf.train.start_queue_runners(sess=self.session, coord=coord)
         for i in range(cfg.iter_num):
             logits, labels, _ = self.session.run([self.logits, self.batch_label, self.minimize])
-            self.acc(logits, labels)
+            # self.acc(logits, labels)
+            self.acc_dist(logits, labels)
             if (i + 1) % 100 == 0:
-                logging.info(i)
                 ce, lr = self.session.run([self.cross_entropy, self.poly_decay_lr])
-                logging.info("cross_entropy == %s, learning rate == %s, accuracy == %s",
-                             ce, lr, self.right / self.samples)
+                logging.info("%d th iter, cross_entropy == %s, learning rate == %s", i, ce, lr)
+                # logging.info('accuracy == %s',  self.right / self.samples)
+                logging.info('accuracy == %s',  self.right_list / self.samples_list)
                 self.right = self.samples = 0
 
             # self.save_model()
@@ -89,10 +92,22 @@ class LstmModel:
         coord.join(threads=threads)
 
     def acc(self, logits, label):
-        max = np.argmax(logits, axis=1)
-        equal = np.sum(np.equal(max, label).astype(int))
+        max_idx = np.argmax(logits, axis=1)
+        equal = np.sum(np.equal(max_idx, label).astype(int))
         self.right += equal
         self.samples += cfg.batch_size
+
+    def acc_dist(self, logits, labels):
+        threshold = np.arange(0.5, 1, 0.1)
+        max = np.max(logits, axis=1, keepdims=True)
+        prob = np.exp(logits - max) / np.sum(np.exp(logits - max), axis=1, keepdims=True)
+        b_labels = labels.astype(bool)[:, np.newaxis]
+        b_idx = np.concatenate((~b_labels, b_labels), axis=1)
+        target = b_idx.astype(int)
+        for i, t in enumerate(threshold):
+            bool_index = prob > t
+            self.samples_list[i] += np.count_nonzero(bool_index)
+            self.right_list[i] += np.count_nonzero(target[bool_index])
 
 
 def run():

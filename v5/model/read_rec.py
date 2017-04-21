@@ -5,7 +5,7 @@ import v5.config as cfg
 def read_and_decode(record_file):
     print(record_file)
     # read_and_decode_test(record_file)
-    data_queue = tf.train.input_producer([record_file], capacity=100, name="string_input_producer")
+    data_queue = tf.train.input_producer([record_file], capacity=1e5, name="string_input_producer")
     reader = tf.TFRecordReader()
     _, serialized_example = reader.read(data_queue)
     features = tf.parse_single_example(
@@ -19,7 +19,7 @@ def read_and_decode(record_file):
     if cfg.is_training:
         data_batch, label_batch = tf.train.batch([data, label],
                                                      batch_size=cfg.batch_size,
-                                                     capacity=cfg.batch_size * 5,
+                                                     capacity=cfg.batch_size * 50,
                                                      num_threads=2)
         return data_batch, label_batch
     else:

@@ -1,12 +1,14 @@
 TIME_STEP = 40
 is_training = True
-batch_size = 400
+batch_size = 500
 rec_file = '/home/daiab/machine_disk/code/Stock-Predict-RNN/v5/data/_.tfrecords'
 hidden_cell_num = 200
 hidden_layers = 5
 rnn_keep_prop = 0.8
-iter_num = 10 ** 6
-learning_rate = 0.02
+num_samples = 1e7
+epochs = 20
+iter_num = int(num_samples / batch_size * 20) # 500000
+learning_rate = 0.005
 momentum = 0.9
 power = 0.6
 decay_steps = iter_num
