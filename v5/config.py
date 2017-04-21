@@ -1,0 +1,13 @@
+TIME_STEP = 40
+is_training = True
+batch_size = 400
+rec_file = '/home/daiab/machine_disk/code/Stock-Predict-RNN/v5/data/_.tfrecords'
+hidden_cell_num = 200
+hidden_layers = 5
+rnn_keep_prop = 0.8
+iter_num = 10 ** 6
+learning_rate = 0.02
+momentum = 0.9
+power = 0.6
+decay_steps = iter_num
+ckpt_file = None
