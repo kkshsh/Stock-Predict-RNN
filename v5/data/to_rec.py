@@ -11,10 +11,10 @@ logging.basicConfig(level=logging.INFO,
 
 FIELDS = ['ticker', 'tradeDate', 'openPrice', 'highestPrice', 'lowestPrice', 'closePrice', 'isOpen']
 PRICE_IDX = [2, 3, 4, 5]
-REF=3 # close price
-SHUFFLE_STEP = 400
+REF=3  # close price
 TIME_STEP = 40
-SHUFFLE = True
+SHUFFLE = None
+SHUFFLE_STEP = 1
 
 
 def int64_feature(value):
@@ -36,6 +36,7 @@ def parse_args():
 
 def process_data(pd_data):
     pd_data = pd_data[pd_data['isOpen'] == 1]
+    pd_data.dropna(axis=0)
     np_data = pd_data[FIELDS].as_matrix()
     data = np_data[:, PRICE_IDX]
     ratio = data[1:] / data[:-1] - 1
@@ -45,7 +46,9 @@ def process_data(pd_data):
     logging.info('total days : {}'.format(days))
     for i in range(TIME_STEP, days, 1):
         ret_data.append(ratio[i - TIME_STEP: i])
-        ret_label.append(1 if ratio[i, REF] > 0.01 else 0)
+        r = ratio[i, REF]
+        # 0 down, 2 up, others 1
+        ret_label.append(2 if r > 0.01 else (0 if r < -0.01 else 1))
     assert len(ret_data) == len(ret_label), 'data and label mismatch'
     return ret_data, ret_label
 

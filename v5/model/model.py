@@ -16,10 +16,10 @@ class LstmModel:
         self.samples = 0
         self.right_list = np.zeros([5])
         self.samples_list = np.zeros([5])
-        self.w = {'fc_weight_1': tf.Variable(tf.truncated_normal([cfg.time_step * cfg.cells_per_rnn_layer, 512], dtype=tf.float32), name='fc_weight_1'),
-                  'fc_weight_2': tf.Variable(tf.truncated_normal([512, 2], dtype=tf.float32), name='fc_weight_2')}
+        self.w = {'fc_weight_1': tf.Variable(tf.truncated_normal([cfg.time_step * cfg.cells_per_rnn_layer, 512], stddev=0.01, dtype=tf.float32), name='fc_weight_1'),
+                  'fc_weight_2': tf.Variable(tf.truncated_normal([512, 3], stddev=0.01, dtype=tf.float32), name='fc_weight_2')}
         self.b = {'fc_bias_1': tf.Variable(tf.constant(0.0, dtype=tf.float32, shape=[512]), name='fc_bias_1'),
-                  'fc_bias_2': tf.Variable(tf.constant(0.0, dtype=tf.float32, shape=[2]), name='fc_bias_2')}
+                  'fc_bias_2': tf.Variable(tf.constant(0.0, dtype=tf.float32, shape=[3]), name='fc_bias_2')}
 
     def build_graph(self):
         """placeholder: train data"""
@@ -41,9 +41,9 @@ class LstmModel:
         self.val = tf.reshape(val, [-1, dim])
 
         fc_1 = tf.nn.relu(tf.nn.xw_plus_b(self.val, self.w['fc_weight_1'], self.b['fc_bias_1']), name="relu")
-        tmp_value = tf.nn.dropout(fc_1, keep_prob=0.8, name="softmax_dropout")
+        # fc_1 = tf.nn.dropout(fc_1, keep_prob=0.8, name="softmax_dropout")
 
-        self.logits = tf.nn.xw_plus_b(tmp_value, self.w['fc_weight_2'], self.b['fc_bias_2'])
+        self.logits = tf.nn.xw_plus_b(fc_1, self.w['fc_weight_2'], self.b['fc_bias_2'])
 
         self.cross_entropy = tf.reduce_mean(
             tf.nn.sparse_softmax_cross_entropy_with_logits(logits=self.logits, labels=self.batch_label, name="cross_entropy"))
@@ -55,7 +55,7 @@ class LstmModel:
         self.poly_decay_lr = tf.train.polynomial_decay(learning_rate=cfg.learning_rate,
                                                   global_step=global_step,
                                                   decay_steps=cfg.decay_steps,
-                                                  end_learning_rate=0,
+                                                  end_learning_rate=0.0002,
                                                   power=cfg.power)
         self.minimize = tf.train.MomentumOptimizer(
             learning_rate=self.poly_decay_lr, momentum=cfg.momentum).\
@@ -74,13 +74,13 @@ class LstmModel:
         threads = tf.train.start_queue_runners(sess=self.session, coord=coord)
         for i in range(cfg.iter_num):
             logits, labels, _ = self.session.run([self.logits, self.batch_label, self.minimize])
-            # self.acc(logits, labels)
-            self.acc_dist(logits, labels)
+            self.acc(logits, labels)
+            # self.acc_dist(logits, labels)
             if (i + 1) % 100 == 0:
                 ce, lr = self.session.run([self.cross_entropy, self.poly_decay_lr])
                 logging.info("%d th iter, cross_entropy == %s, learning rate == %s", i, ce, lr)
-                # logging.info('accuracy == %s',  self.right / self.samples)
-                logging.info('accuracy == %s',  self.right_list / self.samples_list)
+                logging.info('accuracy == %s',  self.right / self.samples)
+                # logging.info('accuracy == %s',  self.right_list / self.samples_list)
                 self.right = self.samples = 0
 
             # self.save_model()

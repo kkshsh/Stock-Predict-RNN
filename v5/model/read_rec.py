@@ -20,7 +20,7 @@ def read_and_decode(record_file):
         data_batch, label_batch = tf.train.batch([data, label],
                                                      batch_size=cfg.batch_size,
                                                      capacity=cfg.batch_size * 50,
-                                                     num_threads=2)
+                                                     num_threads=4)
         return data_batch, label_batch
     else:
         return tf.expand_dims(data, 0), tf.expand_dims(label, 0)
