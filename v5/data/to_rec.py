@@ -10,7 +10,10 @@ logging.basicConfig(level=logging.INFO,
                     datefmt='%b %d %Y %H:%M:%S')
 
 FIELDS = ['ticker', 'tradeDate', 'openPrice', 'highestPrice', 'lowestPrice', 'closePrice', 'isOpen']
+# FIELDS = ['ticker', 'tradeDate', 'openPrice', 'highestPrice', 'lowestPrice', 'closePrice', 'isOpen'
+#           'turnoverVol', 'turnoverValue', 'dealAmount', 'marketValue']
 PRICE_IDX = [2, 3, 4, 5]
+# PRICE_IDX = [2, 3, 4, 5, 7, 8, 9, 10]
 REF=3  # close price
 TIME_STEP = 40
 SHUFFLE = None
@@ -39,16 +42,25 @@ def process_data(pd_data):
     pd_data.dropna(axis=0)
     np_data = pd_data[FIELDS].as_matrix()
     data = np_data[:, PRICE_IDX]
-    ratio = data[1:] / data[:-1] - 1
+    next_days = 5
+    norm = data[1:] / data[:-1] - 1
+    close_price = data[1:, REF]
+    assert norm.shape[0] == close_price.shape[0]
     ret_data = []
     ret_label = []
-    days = ratio.shape[0]
+    days = norm.shape[0]
     logging.info('total days : {}'.format(days))
-    for i in range(TIME_STEP, days, 1):
-        ret_data.append(ratio[i - TIME_STEP: i])
-        r = ratio[i, REF]
+    for i in range(TIME_STEP, days - next_days, 1):
+        ret_data.append(norm[i - TIME_STEP: i])
+        r_max = close_price[i:i+next_days].max() / close_price[i-1] - 1
+        r_min = close_price[i:i+next_days].min() / close_price[i-1] - 1
         # 0 down, 2 up, others 1
-        ret_label.append(2 if r > 0.01 else (0 if r < -0.01 else 1))
+        if r_max > 0.05 and r_min > -0.01:
+            label = 2
+        elif r_max < 0.01 and r_min < -0.05:
+            label = 0
+        else: label = 1
+        ret_label.append(label)
     assert len(ret_data) == len(ret_label), 'data and label mismatch'
     return ret_data, ret_label
 
@@ -91,8 +103,9 @@ def read_csv(args):
 
 
 def main():
+    global SHUFFLE
     args = parse_args()
-    SHUFFLE = True if args.shuffle == 1 else False
+    SHUFFLE = args.shuffle
     logging.info('shuffle = {}'.format(SHUFFLE))
     read_csv(args)
     pass

@@ -57,9 +57,11 @@ class LstmModel:
                                                   decay_steps=cfg.decay_steps,
                                                   end_learning_rate=0.0002,
                                                   power=cfg.power)
+        weight = [v for _, v in self.w.items()]
+        norm = tf.add_n([tf.nn.l2_loss(i) for i in weight])
         self.minimize = tf.train.MomentumOptimizer(
             learning_rate=self.poly_decay_lr, momentum=cfg.momentum).\
-            minimize(self.cross_entropy, global_step=global_step)
+            minimize(self.cross_entropy + cfg.weght_decay * norm, global_step=global_step)
 
         """saver"""
         self.saver = tf.train.Saver()
