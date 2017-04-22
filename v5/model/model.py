@@ -16,7 +16,7 @@ class LstmModel:
         self.samples = 0
         self.right_list = np.zeros([5])
         self.samples_list = np.zeros([5])
-        self.w = {'fc_weight_1': tf.Variable(tf.truncated_normal([cfg.time_step * cfg.hidden_cell_num, 512], dtype=tf.float32), name='fc_weight_1'),
+        self.w = {'fc_weight_1': tf.Variable(tf.truncated_normal([cfg.time_step * cfg.cells_per_rnn_layer, 512], dtype=tf.float32), name='fc_weight_1'),
                   'fc_weight_2': tf.Variable(tf.truncated_normal([512, 2], dtype=tf.float32), name='fc_weight_2')}
         self.b = {'fc_bias_1': tf.Variable(tf.constant(0.0, dtype=tf.float32, shape=[512]), name='fc_bias_1'),
                   'fc_bias_2': tf.Variable(tf.constant(0.0, dtype=tf.float32, shape=[2]), name='fc_bias_2')}
@@ -27,8 +27,8 @@ class LstmModel:
         self.rnn_keep_prop = cfg.rnn_keep_prop
 
         """RNN architecture"""
-        cell = tf.contrib.rnn.BasicLSTMCell(cfg.hidden_cell_num,
-                                            input_size=[cfg.batch_size, cfg.time_step, cfg.hidden_cell_num])
+        cell = tf.contrib.rnn.BasicLSTMCell(cfg.cells_per_rnn_layer,
+                                            input_size=[cfg.batch_size, cfg.time_step, cfg.cells_per_rnn_layer])
         cell = tf.contrib.rnn.DropoutWrapper(cell, input_keep_prob=1.0, output_keep_prob=self.rnn_keep_prop)
 
         multi_cell = tf.contrib.rnn.MultiRNNCell([cell] * cfg.hidden_layers)
@@ -37,7 +37,7 @@ class LstmModel:
         """reshape the RNN output"""
         # val = tf.transpose(val, [1, 0, 2])
         # self.val = tf.gather(val, val.get_shape()[0] - 1)
-        dim = cfg.time_step * cfg.hidden_cell_num
+        dim = cfg.time_step * cfg.cells_per_rnn_layer
         self.val = tf.reshape(val, [-1, dim])
 
         fc_1 = tf.nn.relu(tf.nn.xw_plus_b(self.val, self.w['fc_weight_1'], self.b['fc_bias_1']), name="relu")

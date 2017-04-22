@@ -5,7 +5,7 @@ import logging
 import os
 import random
 
-logging.basicConfig(level=logging.DEBUG,
+logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
                     datefmt='%b %d %Y %H:%M:%S')
 
