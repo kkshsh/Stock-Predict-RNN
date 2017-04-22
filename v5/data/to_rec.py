@@ -14,6 +14,7 @@ PRICE_IDX = [2, 3, 4, 5]
 REF=3 # close price
 SHUFFLE_STEP = 400
 TIME_STEP = 40
+SHUFFLE = True
 
 
 def int64_feature(value):
@@ -28,6 +29,7 @@ def parse_args():
     import argparse
     parser = argparse.ArgumentParser(description='read csv file')
     parser.add_argument('csv_fold', help='csv fold path which contains all csv files', type=str)
+    parser.add_argument('--shuffle', default=1, help='csv fold path which contains all csv files', type=int)
     args = parser.parse_args()
     return args
 
@@ -51,10 +53,11 @@ def process_data(pd_data):
 def to_tfrecord(writer, data, label):
     row = data.shape[0]
     assert row == label.shape[0], 'to_tfrecord errors'
-    idx = list(range(row))
-    random.shuffle(idx)
-    data = data[idx]
-    label = label[idx]
+    if SHUFFLE:
+        idx = list(range(row))
+        random.shuffle(idx)
+        data = data[idx]
+        label = label[idx]
     for i in range(row):
         example = tf.train.Example(features=tf.train.Features(feature={
                 'label' : int64_feature(label[i]),
@@ -86,6 +89,8 @@ def read_csv(args):
 
 def main():
     args = parse_args()
+    SHUFFLE = True if args.shuffle == 1 else False
+    logging.info('shuffle = {}'.format(SHUFFLE))
     read_csv(args)
     pass
 
