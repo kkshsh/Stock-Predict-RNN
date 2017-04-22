@@ -1,4 +1,4 @@
-TIME_STEP = 40
+time_step = 40
 is_training = True
 batch_size = 500
 rec_file = '/home/daiab/machine_disk/code/Stock-Predict-RNN/v5/data/_.tfrecords'

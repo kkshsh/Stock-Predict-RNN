@@ -11,11 +11,11 @@ def read_and_decode(record_file):
     features = tf.parse_single_example(
         serialized_example,
         features={'label': tf.FixedLenFeature([], tf.int64),
-                  'data': tf.FixedLenFeature([cfg.TIME_STEP * 4], tf.float32)})
+                  'data': tf.FixedLenFeature([cfg.time_step * 4], tf.float32)})
     data_raw = features['data']
     label = features['label']
-    data = tf.reshape(data_raw, [cfg.TIME_STEP, 4])
-    data.set_shape([cfg.TIME_STEP, 4])
+    data = tf.reshape(data_raw, [cfg.time_step, 4])
+    data.set_shape([cfg.time_step, 4])
     if cfg.is_training:
         data_batch, label_batch = tf.train.batch([data, label],
                                                      batch_size=cfg.batch_size,
