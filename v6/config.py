@@ -1,7 +1,7 @@
 time_step = 40
 is_training = True
 batch_size = 1200
-rec_file = '/home/daiab/machine_disk/code/Stock-Predict-RNN/v5/data/c3.tfrecords'
+rec_file = '/home/daiab/machine_disk/code/Stock-Predict-RNN/v6/data/c3.tfrecords'
 state_size = 200
 hidden_layers = 5
 rnn_keep_prop = 1.0
