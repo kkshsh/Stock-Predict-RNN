@@ -14,4 +14,4 @@ power = 0.6
 weght_decay = 0.0002
 decay_steps = iter_num
 ckpt_file = None
-class_num = 3
+class_num = 2

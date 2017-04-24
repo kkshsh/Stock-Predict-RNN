@@ -54,15 +54,7 @@ def process_data(pd_data):
     for i in range(TIME_STEP, days - next_days, 1):
         ret_data.append(norm[i - TIME_STEP: i])
         r = norm[i, REF]
-        # label = 1 if r > 0 else 0
-        # r_max = close_price[i:i+next_days].max() / close_price[i-1] - 1
-        # r_min = close_price[i:i+next_days].min() / close_price[i-1] - 1
-        # 0 down, 2 up, others 1
-        if r > 0.02 and r > -0.01:
-            label = 2
-        elif r < 0.01 and r < -0.02:
-            label = 0
-        else: label = 1
+        label = 1 if r > 0.0 else 0
         ret_label.append(label)
         ret_target.append(r)
     assert len(ret_data) == len(ret_label), 'data and label mismatch'
