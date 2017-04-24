@@ -1,4 +1,3 @@
-import math
 import numpy as np
 import tensorflow as tf
 from tensorflow.contrib.rnn import RNNCell
@@ -63,12 +62,10 @@ class BNLSTMCell(RNNCell):
             c, h = state
 
             x_size = x.get_shape().as_list()[1]
-            W_xh = tf.get_variable('W_xh',
-                [x_size, 4 * self.num_units],
-                initializer=orthogonal_initializer())
-            W_hh = tf.get_variable('W_hh',
-                [self.num_units, 4 * self.num_units],
-                initializer=bn_lstm_identity_initializer(0.95))
+            W_xh = tf.get_variable('W_xh', [x_size, 4 * self.num_units],
+                                   initializer=orthogonal_initializer())
+            W_hh = tf.get_variable('W_hh', [self.num_units, 4 * self.num_units],
+                                   initializer=bn_lstm_identity_initializer(0.95))
             bias = tf.get_variable('bias', [4 * self.num_units])
 
             xh = tf.matmul(x, W_xh)
@@ -121,7 +118,6 @@ def orthogonal_initializer():
 
 def batch_norm(x, name_scope, training, epsilon=1e-3, decay=0.999):
     '''Assume 2d [batch, values] tensor'''
-
     with tf.variable_scope(name_scope):
         size = x.get_shape().as_list()[1]
 

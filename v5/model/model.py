@@ -4,7 +4,7 @@ import logging
 from v5 import config as cfg
 from v5.model import read_rec
 import numpy as np
-from tensorflow.contrib.rnn import LayerNormBasicLSTMCell, BasicRNNCell, GridLSTMCell, GRUCell, BasicLSTMCell
+# from tensorflow.contrib.rnn import LayerNormBasicLSTMCell, BasicRNNCell, GridLSTMCell, GRUCell, BasicLSTMCell
 from v5.model.bnlstm import BNLSTMCell
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
@@ -86,7 +86,6 @@ class LstmModel:
                 ce, lr = self.session.run([self.cross_entropy, self.poly_decay_lr])
                 logging.info("%d th iter, cross_entropy == %s, learning rate == %s", i, ce, lr)
                 logging.info('accuracy == %s',  self.right / self.samples)
-                # logging.info('accuracy == %s',  self.right_list / self.samples_list)
                 self.right = self.samples = 0
 
             # self.save_model()
@@ -96,12 +95,9 @@ class LstmModel:
     def acc(self, logits, label, gs):
         max_idx = np.argmax(logits, axis=1)
         # if gs % 20 == 0:
-        #     print(np.count_nonzero(max_idx))
-        #     print(np.count_nonzero(label))
+        #     print(np.count_nonzero(max_idx == 1))
+        #     print(np.count_nonzero(label == 1))
         #     print('--------------')
-        # print(np.count_nonzero(max_idx==5) / 700)
-        # print(logits)
-        # print(max_idx)
         equal = np.sum(np.equal(max_idx, label).astype(int))
         self.right += equal
         self.samples += cfg.batch_size

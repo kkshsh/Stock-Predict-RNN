@@ -17,7 +17,7 @@ PRICE_IDX = [2, 3, 4, 5]
 REF=3  # close price
 TIME_STEP = 40
 SHUFFLE = None
-SHUFFLE_STEP = 400
+SHUFFLE_STEP = 1
 
 
 def int64_feature(value):
@@ -57,9 +57,9 @@ def process_data(pd_data):
         r_max = close_price[i:i+next_days].max() / close_price[i-1] - 1
         r_min = close_price[i:i+next_days].min() / close_price[i-1] - 1
         # 0 down, 2 up, others 1
-        if r_max > 0.05 and r_min > -0.01:
+        if r_max > 0.04 and r_min > -0.01:
             label = 2
-        elif r_max < 0.01 and r_min < -0.05:
+        elif r_max < 0.01 and r_min < -0.04:
             label = 0
         else: label = 1
         ret_label.append(label)
