@@ -18,10 +18,12 @@ class LstmModel:
         self.samples = 0
         self.right_list = np.zeros([5])
         self.samples_list = np.zeros([5])
-        self.w = {'fc_weight_1': tf.Variable(tf.truncated_normal([cfg.time_step * cfg.state_size, cfg.class_num], stddev=0.01, dtype=tf.float32), name='fc_weight_1'),
-                  'fc_weight_2': tf.Variable(tf.truncated_normal([128, cfg.class_num], stddev=0.01, dtype=tf.float32), name='fc_weight_2')}
-        self.b = {'fc_bias_1': tf.Variable(tf.constant(0.01, dtype=tf.float32, shape=[cfg.class_num]), name='fc_bias_1'),
-                  'fc_bias_2': tf.Variable(tf.constant(0.01, dtype=tf.float32, shape=[cfg.class_num]), name='fc_bias_2')}
+        self.w = {'fc_weight_1':
+                      tf.Variable(tf.truncated_normal([cfg.time_step * cfg.state_size, cfg.class_num], stddev=0.01, dtype=tf.float32), name='fc_weight_1'),
+                  }
+        self.b = {'fc_bias_1':
+                      tf.Variable(tf.constant(0.01, dtype=tf.float32, shape=[cfg.class_num]), name='fc_bias_1'),
+                  }
 
     def build_graph(self):
         """placeholder: train data"""
@@ -43,10 +45,6 @@ class LstmModel:
 
 
         self.logits = tf.nn.xw_plus_b(self.val, self.w['fc_weight_1'], self.b['fc_bias_1'])
-        # self.logits = tf.nn.relu(tf.nn.xw_plus_b(self.val, self.w['fc_weight_1'], self.b['fc_bias_1']), name="relu")
-        # fc_1 = tf.nn.dropout(fc_1, keep_prob=0.8, name="softmax_dropout")
-
-        # self.logits = tf.nn.xw_plus_b(fc_1, self.w['fc_weight_2'], self.b['fc_bias_2'], name='fc_2')
 
         self.cross_entropy = tf.reduce_mean(
             tf.nn.sparse_softmax_cross_entropy_with_logits(logits=self.logits, labels=self.batch_label, name="cross_entropy"))
