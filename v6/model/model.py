@@ -44,8 +44,6 @@ class LstmModel:
         val, self.states = tf.nn.dynamic_rnn(multi_cell, self.batch_data, initial_state=state_init, dtype=tf.float32)
 
         """reshape the RNN output"""
-        # val = tf.transpose(val, [1, 0, 2])
-        # self.val = tf.gather(val, val.get_shape()[0] - 1)
         dim = cfg.time_step * cfg.state_size
         self.val = tf.reshape(val, [-1, dim])
 
@@ -69,8 +67,6 @@ class LstmModel:
         weight = [v for _, v in self.w.items()]
         norm = tf.add_n([tf.nn.l2_loss(i) for i in weight])
         loss = self.reg_loss + self.cross_entropy + cfg.weght_decay * norm
-        # self.minimize = tf.train.AdamOptimizer(learning_rate=cfg.learning_rate).\
-        #     minimize(loss, global_step=global_step)
         self.minimize = tf.train.MomentumOptimizer(
             learning_rate=self.poly_decay_lr, momentum=cfg.momentum).\
             minimize(loss, global_step=global_step)
@@ -88,38 +84,25 @@ class LstmModel:
         threads = tf.train.start_queue_runners(sess=self.session, coord=coord)
         for i in range(cfg.iter_num):
             _, logits, labels = self.session.run([self.minimize, self.logits, self.batch_label])
-            self.acc(logits, labels, i)
+            self.acc(logits, labels)
             if (i + 1) % 20 == 0:
                 ce, rl, lr = self.session.run([self.cross_entropy, self.reg_loss, self.poly_decay_lr])
                 logging.info("%d th iter, cross_entropy == %s, reg loss = %s, learning rate == %s", i, ce, rl, lr)
                 logging.info('accuracy == %s',  self.right / self.samples)
-                self.right = self.samples = 0
+                self.right = 0
+                self.samples = 0
+            if (i + 1) % 10000 == 0:
+                # self.save_model()
+                pass
 
-            # self.save_model()
         coord.request_stop()
         coord.join(threads=threads)
 
-    def acc(self, logits, label, gs):
+    def acc(self, logits, label):
         max_idx = np.argmax(logits, axis=1)
-        if (gs + 1) % 20 == 0:
-            print(np.count_nonzero(max_idx == 1))
-            print(np.count_nonzero(label == 1))
-            print('--------------')
         equal = np.sum(np.equal(max_idx, label).astype(int))
         self.right += equal
         self.samples += cfg.batch_size
-
-    def acc_dist(self, logits, labels):
-        threshold = np.arange(0.5, 1, 0.1)
-        max = np.max(logits, axis=1, keepdims=True)
-        prob = np.exp(logits - max) / np.sum(np.exp(logits - max), axis=1, keepdims=True)
-        b_labels = labels.astype(bool)[:, np.newaxis]
-        b_idx = np.concatenate((~b_labels, b_labels), axis=1)
-        target = b_idx.astype(int)
-        for i, t in enumerate(threshold):
-            bool_index = prob > t
-            self.samples_list[i] += np.count_nonzero(bool_index)
-            self.right_list[i] += np.count_nonzero(target[bool_index])
 
 
 def run():
